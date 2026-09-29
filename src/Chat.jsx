@@ -1,0 +1,715 @@
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useAuth } from "./AuthContext";
+import "./Chat.css";
+
+const API = "http://localhost:3000";
+function formatTime(value) {
+  if (!value) return "";
+
+  return new Date(value).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function formatConversationTime(value) {
+  if (!value) return "";
+
+  const date = new Date(value);
+  const now = new Date();
+
+  if (
+    date.getFullYear() === now.getFullYear() &&
+    date.getMonth() === now.getMonth() &&
+    date.getDate() === now.getDate()
+  ) {
+    return formatTime(value);
+  }
+
+  return date.toLocaleDateString([], {
+    month: "short",
+    day: "numeric",
+  });
+}
+
+function Chat() {
+  const { user, loading: authLoading } = useAuth();
+console.log("CHAT AUTH:", {
+  user,
+  authLoading
+});
+  const [conversations, setConversations] = useState([]);
+  const [selectedConversation, setSelectedConversation] =
+    useState(null);
+
+  const [messages, setMessages] = useState([]);
+  const [messageText, setMessageText] = useState("");
+
+  const [loadingConversations, setLoadingConversations] =
+    useState(true);
+
+  const [loadingMessages, setLoadingMessages] =
+    useState(false);
+
+  const [sending, setSending] = useState(false);
+
+  const [search, setSearch] = useState("");
+  const [error, setError] = useState("");
+
+  const bottomRef = useRef(null);
+  const textareaRef = useRef(null);
+
+
+async function loadConversations() {
+  try {
+    setLoadingConversations(true);
+    setError("");
+
+    const response = await fetch(
+      `${API}/api/conversations?page=1&limit=50`,
+      {
+        credentials: "include",
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.error || "Failed loading conversations"
+      );
+    }
+
+    setConversations(data.conversations || []);
+
+  } catch (err) {
+    console.error(err);
+    setError(err.message);
+
+  } finally {
+    setLoadingConversations(false);
+  }
+}
+
+
+  async function loadMessages(conversation) {
+    try {
+      setSelectedConversation(conversation);
+      setMessages([]);
+      setLoadingMessages(true);
+      setError("");
+
+      const response = await fetch(
+        `${API}/api/conversations/${conversation.id}/messages?page=1&limit=50`,
+        {
+          credentials: "include",
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error || "Failed loading messages"
+        );
+      }
+
+      setMessages(
+  Array.isArray(data.messages)
+    ? data.messages
+    : []
+);
+
+
+      await fetch(
+        `${API}/api/conversations/${conversation.id}/read`,
+        {
+          method: "PUT",
+          credentials: "include",
+        }
+      );
+
+
+    } catch (err) {
+      console.error(err);
+      setError(err.message);
+    } finally {
+      setLoadingMessages(false);
+    }
+  }
+
+async function refreshMessages() {
+  if (!selectedConversation) {
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `${API}/api/conversations/${selectedConversation.id}/messages?page=1&limit=50`,
+      {
+        credentials: "include",
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      return;
+    }
+
+    setMessages(
+      Array.isArray(data.messages)
+        ? data.messages
+        : []
+    );
+  } catch (err) {
+    console.error("Message refresh error:", err);
+  }
+}
+
+  async function sendMessage() {
+    const text = messageText.trim();
+
+    if (
+      !text ||
+      !selectedConversation ||
+      sending
+    ) {
+      return;
+    }
+
+
+    try {
+      setSending(true);
+      setError("");
+
+
+      const response = await fetch(
+        `${API}/api/messages`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            conversation_id:
+              selectedConversation.id,
+            body: text,
+          }),
+        }
+      );
+
+
+      const data = await response.json();
+
+
+      if (!response.ok) {
+        throw new Error(
+          data.error || "Message failed"
+        );
+      }
+
+
+      setMessages((old) => [
+        ...old,
+        data.message,
+      ]);
+
+
+      setMessageText("");
+
+
+      await loadConversations();
+
+
+      setTimeout(() => {
+        bottomRef.current?.scrollIntoView({
+          behavior: "smooth",
+        });
+      }, 50);
+
+
+    } catch (err) {
+      console.error(err);
+      setError(err.message);
+
+    } finally {
+      setSending(false);
+    }
+  }
+
+function handleKeyDown(event) {
+  if (
+    event.key === "Enter" &&
+    !event.shiftKey
+  ) {
+    event.preventDefault();
+    sendMessage();
+  }
+}
+
+
+useEffect(() => {
+  if (!authLoading && user) {
+    loadConversations();
+  }
+}, [authLoading, user]);
+
+
+useEffect(() => {
+  if (messages.length) {
+    setTimeout(() => {
+      bottomRef.current?.scrollIntoView({
+        behavior: "smooth",
+      });
+    }, 50);
+  }
+}, [messages]);
+
+    useEffect(() => {
+  if (!selectedConversation) {
+    return;
+  }
+
+  const interval = setInterval(() => {
+    refreshMessages();
+  }, 1000);
+
+  return () => clearInterval(interval);
+}, [selectedConversation]);
+
+const filteredConversations = useMemo(() => {
+  const value = search
+    .trim()
+    .toLowerCase();
+
+  if (!value) {
+    return conversations;
+  }
+
+  return conversations.filter((item) =>
+    String(
+      item.other_user_name || ""
+    )
+      .toLowerCase()
+      .includes(value)
+  );
+}, [search, conversations]);
+
+
+if (authLoading) {
+  return (
+    <main className="chat-page">
+      <div className="chat-loading">
+        Loading...
+      </div>
+    </main>
+  );
+}
+
+
+return (
+  <main className="chat-page">
+
+    <section className="chat-shell">
+
+
+      <aside
+        className={`chat-sidebar ${
+          selectedConversation
+            ? "chat-sidebar-hidden-mobile"
+            : ""
+        }`}
+      >
+
+        <div className="chat-sidebar-header">
+
+          <div>
+            <span className="chat-eyebrow">
+              ROAMLY
+            </span>
+
+            <h1>
+              Messages
+            </h1>
+          </div>
+
+          <div className="chat-online-dot" />
+
+        </div>
+
+
+
+        <div className="chat-search">
+
+          <span>
+            ⌕
+          </span>
+
+          <input
+            value={search}
+            onChange={(e)=>
+              setSearch(e.target.value)
+            }
+            placeholder="Search conversations"
+          />
+
+        </div>
+
+
+
+        <div className="chat-conversation-list">
+
+
+        {loadingConversations ? (
+
+          <>
+            <div className="chat-skeleton" />
+            <div className="chat-skeleton" />
+            <div className="chat-skeleton" />
+          </>
+
+
+        ) : filteredConversations.length === 0 ? (
+
+          <div className="chat-empty-list">
+
+            <div className="chat-empty-icon">
+              ✦
+            </div>
+
+            <strong>
+              No conversations yet
+            </strong>
+
+            <span>
+              Start chatting with Roamly users.
+            </span>
+
+          </div>
+
+
+        ) : (
+
+          filteredConversations.map(
+            (conversation)=>(
+
+            <button
+              key={conversation.id}
+              className={`conversation-item ${
+                selectedConversation?.id ===
+                conversation.id
+                  ? "conversation-item-active"
+                  : ""
+              }`}
+              onClick={()=>
+                loadMessages(conversation)
+              }
+            >
+
+              <div className="conversation-avatar">
+                {
+                  (
+                    conversation.other_user_name ||
+                    "?"
+                  )
+                  .charAt(0)
+                  .toUpperCase()
+                }
+              </div>
+
+
+              <div className="conversation-main">
+
+<div className="conversation-top">
+  <strong>
+    {
+      conversation.other_user_name ||
+      "Roamly User"
+    }
+  </strong>
+
+  <div className="conversation-top-right">
+    <span>
+      {
+        formatConversationTime(
+          conversation.last_message_time ||
+          conversation.created_at
+        )
+      }
+    </span>
+
+    {Number(conversation.unread_count) > 0 && (
+      <span className="conversation-unread">
+        {conversation.unread_count}
+      </span>
+    )}
+  </div>
+</div>
+
+<div className="conversation-preview">
+  {conversation.last_message || "Start conversation"}
+</div>
+               
+              </div>
+
+
+            </button>
+
+          ))
+
+        )}
+
+        </div>
+
+
+      </aside>
+
+
+
+      <section
+        className={`chat-panel ${
+          selectedConversation
+            ? "chat-panel-mobile-open"
+            : ""
+        }`}
+      >
+
+      {!selectedConversation ? (
+
+        <div className="chat-welcome">
+
+          <div className="chat-welcome-orb">
+            ✦
+          </div>
+
+
+          <h2>
+            Your conversations
+          </h2>
+
+
+          <p>
+            Select a conversation and start connecting.
+          </p>
+
+
+        </div>
+
+
+      ) : (
+
+
+        <>
+
+        <header className="chat-header">
+
+
+          <button
+            className="chat-back-button"
+            onClick={()=>
+              setSelectedConversation(null)
+            }
+          >
+            ←
+          </button>
+
+
+          <div className="chat-header-avatar">
+            {
+              (
+                selectedConversation.other_user_name ||
+                "?"
+              )
+              .charAt(0)
+              .toUpperCase()
+            }
+          </div>
+
+
+          <div className="chat-header-info">
+
+            <strong>
+              {
+                selectedConversation.other_user_name ||
+                "Roamly User"
+              }
+            </strong>
+
+            <span>
+              Roamly connection
+            </span>
+
+          </div>
+
+
+        </header>
+        <div className="chat-messages">
+
+          {loadingMessages ? (
+
+            <div className="chat-message-loading">
+              <span />
+              <span />
+              <span />
+            </div>
+
+          ) : messages.length === 0 ? (
+
+            <div className="chat-no-messages">
+
+              <div>
+                ✦
+              </div>
+
+              <strong>
+                Start the conversation
+              </strong>
+
+              <span>
+                Send your first message.
+              </span>
+
+            </div>
+
+          ) : (
+
+            messages.map((message) => {
+
+              const own =
+                String(message.sender_id) ===
+                String(user?.id);
+
+
+              return (
+
+                <div
+                  key={message.id}
+                  className={`message-row ${
+                    own
+                      ? "message-row-own"
+                      : "message-row-other"
+                  }`}
+                >
+
+                  <div
+                    className={`message-bubble ${
+                      own
+                        ? "message-bubble-own"
+                        : "message-bubble-other"
+                    }`}
+                  >
+
+                    <p>
+                      {message.body}
+                    </p>
+
+
+                    <div className="message-meta">
+
+                      <span>
+                        {formatTime(
+                          message.created_at
+                        )}
+                      </span>
+
+
+                      {own && (
+                        <span
+                          className={
+                            message.is_read
+                              ? "message-read"
+                              : ""
+                          }
+                        >
+                          ✓
+                        </span>
+                      )}
+
+                    </div>
+
+
+                  </div>
+
+
+                </div>
+
+              );
+
+            })
+
+          )}
+
+
+          <div ref={bottomRef} />
+
+        </div>
+
+
+
+        {error && (
+
+          <div className="chat-error">
+            {error}
+          </div>
+
+        )}
+
+
+
+        <div className="chat-composer">
+
+
+          <textarea
+            ref={textareaRef}
+            value={messageText}
+            onChange={(e)=>
+              setMessageText(
+                e.target.value
+              )
+            }
+            onKeyDown={handleKeyDown}
+            placeholder="Write a message..."
+            maxLength={5000}
+            rows={1}
+          />
+
+
+          <button
+            onClick={sendMessage}
+            disabled={
+              sending ||
+              !messageText.trim()
+            }
+          >
+
+            {sending ? "…" : "↑"}
+
+          </button>
+
+
+        </div>
+
+
+        <div className="chat-composer-hint">
+          Enter to send · Shift + Enter for new line
+        </div>
+
+
+        </>
+
+      )}
+
+      </section>
+
+
+    </section>
+
+
+  </main>
+);
+
+}
+
+export default Chat;

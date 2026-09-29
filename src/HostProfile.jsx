@@ -1,0 +1,495 @@
+import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import "./HostProfile.css";
+
+function MapPinIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="17" height="17" fill="none">
+      <path
+        d="M19 10.2c0 4.7-7 10-7 10s-7-5.3-7-10a7 7 0 1 1 14 0Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      />
+      <circle
+        cx="12"
+        cy="10"
+        r="2.2"
+        stroke="currentColor"
+        strokeWidth="1.4"
+      />
+    </svg>
+  );
+}
+
+function GlobeIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none">
+      <circle
+        cx="12"
+        cy="12"
+        r="8.5"
+        stroke="currentColor"
+        strokeWidth="1.4"
+      />
+      <path
+        d="M3.8 12h16.4M12 3.5c2.2 2.3 3.3 5.1 3.3 8.5s-1.1 6.2-3.3 8.5c-2.2-2.3-3.3-5.1-3.3-8.5S9.8 5.8 12 3.5Z"
+        stroke="currentColor"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function BriefcaseIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none">
+      <rect
+        x="4"
+        y="7"
+        width="16"
+        height="12"
+        rx="2"
+        stroke="currentColor"
+        strokeWidth="1.4"
+      />
+      <path
+        d="M9 7V5.8A1.8 1.8 0 0 1 10.8 4h2.4A1.8 1.8 0 0 1 15 5.8V7"
+        stroke="currentColor"
+        strokeWidth="1.4"
+      />
+      <path
+        d="M4 11h16"
+        stroke="currentColor"
+        strokeWidth="1.4"
+      />
+    </svg>
+  );
+}
+
+function ArrowIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="17" height="17" fill="none">
+      <path
+        d="M5 12h13"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <path
+        d="m13 6 6 6-6 6"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function HostProfile() {
+  const { id } = useParams();
+
+  const [host, setHost] = useState(null);
+  const [opportunities, setOpportunities] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    async function loadHost() {
+      try {
+        setLoading(true);
+        setError("");
+
+        const response = await fetch(
+          `http://localhost:3000/api/hosts/${id}`,
+          {
+            method: "GET",
+            credentials: "include",
+          }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.error || "Failed to load host profile."
+          );
+        }
+
+        setHost(data.host || null);
+        setOpportunities(data.opportunities || []);
+      } catch (err) {
+        setError(
+          err.message || "Something went wrong. Please try again."
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (id) {
+      loadHost();
+    }
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="host-profile-page">
+        <header className="host-profile-navbar">
+          <Link to="/" className="host-profile-logo">
+            Roamly
+          </Link>
+
+          <Link to="/explore" className="host-profile-back">
+            Explore
+          </Link>
+        </header>
+
+        <main className="host-profile-container">
+          <div className="host-profile-loading">
+            <div className="host-loading-orbit">
+              <div />
+            </div>
+
+            <span>Loading host profile</span>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (error || !host) {
+    return (
+      <div className="host-profile-page">
+        <header className="host-profile-navbar">
+          <Link to="/" className="host-profile-logo">
+            Roamly
+          </Link>
+
+          <Link to="/explore" className="host-profile-back">
+            Explore
+          </Link>
+        </header>
+
+        <main className="host-profile-container">
+          <section className="host-profile-empty">
+            <div className="host-empty-visual">
+              <div className="host-empty-ring" />
+              <div className="host-empty-core">404</div>
+            </div>
+
+            <span className="host-profile-eyebrow">
+              ROAMLY HOST
+            </span>
+
+            <h1>Host not found</h1>
+
+            <p>
+              {error ||
+                "This host profile could not be found."}
+            </p>
+
+            <Link to="/explore" className="host-profile-button">
+              Back to Explore
+            </Link>
+          </section>
+        </main>
+      </div>
+    );
+  }
+
+  const languages = Array.isArray(host.languages)
+    ? host.languages
+    : [];
+
+  const skills = Array.isArray(host.skills)
+    ? host.skills
+    : [];
+
+  const initials =
+    host.display_name?.charAt(0)?.toUpperCase() || "H";
+
+  return (
+    <div className="host-profile-page">
+      <header className="host-profile-navbar">
+        <Link to="/" className="host-profile-logo">
+          Roamly
+        </Link>
+
+        <Link to="/explore" className="host-profile-back">
+          <span>Back to Explore</span>
+          <ArrowIcon />
+        </Link>
+      </header>
+
+      <main className="host-profile-container">
+        <section className="host-hero">
+          <div className="host-hero-background">
+            <div className="host-grid" />
+            <div className="host-orbit host-orbit-one" />
+            <div className="host-orbit host-orbit-two" />
+            <div className="host-glow" />
+          </div>
+
+          <div className="host-hero-content">
+            <div className="host-avatar-wrap">
+              <div className="host-avatar-ring host-avatar-ring-one" />
+              <div className="host-avatar-ring host-avatar-ring-two" />
+
+              <div className="host-profile-avatar">
+                {host.avatar_url ? (
+                  <img
+                    src={host.avatar_url}
+                    alt={host.display_name || "Host"}
+                  />
+                ) : (
+                  initials
+                )}
+              </div>
+
+              <span className="host-status-dot" />
+            </div>
+
+            <div className="host-profile-main">
+              <span className="host-profile-eyebrow">
+                VERIFIED HOST
+              </span>
+
+              <h1>
+                {host.display_name || "Roamly Host"}
+              </h1>
+
+              <div className="host-profile-location">
+                <MapPinIcon />
+                <span>
+                  {[host.city, host.country]
+                    .filter(Boolean)
+                    .join(", ") || "Location not added"}
+                </span>
+              </div>
+
+              <div className="host-profile-meta">
+                <div className="host-profile-meta-item">
+                  <GlobeIcon />
+
+                  <div>
+                    <span>Member since</span>
+
+                    <strong>
+                      {host.created_at
+                        ? new Date(
+                            host.created_at
+                          ).toLocaleDateString(
+                            "en-US",
+                            {
+                              year: "numeric",
+                              month: "long",
+                            }
+                          )
+                        : "Unknown"}
+                    </strong>
+                  </div>
+                </div>
+
+                <div className="host-profile-meta-item">
+                  <BriefcaseIcon />
+
+                  <div>
+                    <span>Opportunities</span>
+
+                    <strong>
+                      {opportunities.length}
+                    </strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="host-profile-grid">
+          <div className="host-profile-details">
+            <div className="host-profile-section">
+              <div className="section-heading">
+                <span>01</span>
+                <h2>About the host</h2>
+              </div>
+
+              <p className="host-about">
+                {host.bio ||
+                  "This host hasn't added a bio yet."}
+              </p>
+            </div>
+
+            <div className="host-profile-section">
+              <div className="section-heading">
+                <span>02</span>
+                <h2>Languages</h2>
+              </div>
+
+              {languages.length > 0 ? (
+                <div className="host-profile-tags">
+                  {languages.map((language) => (
+                    <span
+                      className="host-profile-tag"
+                      key={language}
+                    >
+                      {language}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="host-muted">Not added</p>
+              )}
+            </div>
+
+            <div className="host-profile-section">
+              <div className="section-heading">
+                <span>03</span>
+                <h2>Skills</h2>
+              </div>
+
+              {skills.length > 0 ? (
+                <div className="host-profile-tags">
+                  {skills.map((skill) => (
+                    <span
+                      className="host-profile-tag"
+                      key={skill}
+                    >
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="host-muted">Not added</p>
+              )}
+            </div>
+          </div>
+
+          <aside className="host-side-card">
+            <span className="host-side-label">
+              HOST PROFILE
+            </span>
+
+            <div className="host-side-orb">
+              <div className="host-side-orbit" />
+              <div className="host-side-core">
+                {initials}
+              </div>
+            </div>
+
+            <h2>
+              Explore what
+              <br />
+              they offer.
+            </h2>
+
+            <p>
+              Discover opportunities created by this host
+              and find an experience that fits your journey.
+            </p>
+
+            <div className="host-side-line" />
+          </aside>
+        </section>
+
+        <section className="host-opportunities">
+          <div className="host-opportunities-heading">
+            <div>
+              <span className="host-profile-eyebrow">
+                OPPORTUNITIES
+              </span>
+
+              <h2>
+                Experiences from this host
+              </h2>
+            </div>
+
+            <span className="host-opportunity-count">
+              {opportunities.length
+                .toString()
+                .padStart(2, "0")}
+            </span>
+          </div>
+
+          {opportunities.length === 0 ? (
+            <div className="host-no-opportunities">
+              <div className="host-no-opportunities-mark" />
+
+              <div>
+                <strong>No active opportunities</strong>
+                <p>
+                  This host doesn't have any active
+                  opportunities yet.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="host-opportunities-grid">
+              {opportunities.map((opportunity, index) => (
+                <Link
+                  key={opportunity.id}
+                  to={`/opportunity/${opportunity.id}`}
+                  className="host-opportunity-card"
+                >
+                  <div className="host-opportunity-art">
+                    <div className="opportunity-art-glow" />
+                    <div className="opportunity-art-ring" />
+                    <div className="opportunity-art-core">
+                      {(index + 1)
+                        .toString()
+                        .padStart(2, "0")}
+                    </div>
+                  </div>
+
+                  <div className="host-opportunity-content">
+                    <span className="host-opportunity-category">
+                      {opportunity.category ||
+                        "Opportunity"}
+                    </span>
+
+                    <h3>{opportunity.title}</h3>
+
+                    <p className="host-opportunity-location">
+                      {[
+                        opportunity.city,
+                        opportunity.country,
+                      ]
+                        .filter(Boolean)
+                        .join(", ") ||
+                        "Location not specified"}
+                    </p>
+
+                    <p className="host-opportunity-description">
+                      {opportunity.description ||
+                        "No description available."}
+                    </p>
+
+                    <div className="host-opportunity-footer">
+                      <span>
+                        {opportunity.people_needed || 1}{" "}
+                        {Number(
+                          opportunity.people_needed || 1
+                        ) === 1
+                          ? "person"
+                          : "people"}
+                      </span>
+
+                      <span className="host-view-link">
+                        View opportunity
+                        <ArrowIcon />
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </section>
+      </main>
+    </div>
+  );
+}
+
+export default HostProfile;
