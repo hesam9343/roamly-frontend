@@ -20,7 +20,7 @@ export function AuthProvider({ children }) {
 
     const timeout = setTimeout(() => {
       controller.abort();
-    }, 8000);
+    }, 3000);
 
     try {
       console.log("AUTH: checking session...");
@@ -46,7 +46,6 @@ export function AuthProvider({ children }) {
 
       if (!response.ok) {
         console.log("AUTH: not logged in");
-
         setUser(null);
         return;
       }
@@ -55,16 +54,10 @@ export function AuthProvider({ children }) {
 
       setUser(data?.user || null);
     } catch (error) {
-      if (error.name === "AbortError") {
-        console.error(
-          "AUTH: /api/auth/me timed out after 8 seconds"
-        );
-      } else {
-        console.error(
-          "AUTH: session check failed:",
-          error
-        );
-      }
+      console.log(
+        "AUTH: backend unavailable, continuing as guest.",
+        error
+      );
 
       setUser(null);
     } finally {
@@ -92,8 +85,8 @@ export function AuthProvider({ children }) {
         }
       );
     } catch (error) {
-      console.error(
-        "AUTH: logout failed:",
+      console.log(
+        "AUTH: logout skipped because backend is unavailable.",
         error
       );
     } finally {
