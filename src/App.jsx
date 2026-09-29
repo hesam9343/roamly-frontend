@@ -392,7 +392,7 @@ function Home() {
 function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
+<BrowserRouter basename="/roamly-frontend">
         <Routes>
           <Route path="/" element={<Home />} />
 
