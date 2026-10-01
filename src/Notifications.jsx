@@ -1,0 +1,211 @@
+import { useCallback, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { useAuth } from "./AuthContext";
+import "./Notifications.css";
+
+const API = "http://localhost:3000";
+
+function formatDate(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleString(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+}
+
+export default function Notifications() {
+  const { user, loading: authLoading } = useAuth();
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [busyId, setBusyId] = useState(null);
+  const [markingAll, setMarkingAll] = useState(false);
+
+  const loadNotifications = useCallback(async () => {
+    if (!user) {
+      setItems([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch(`${API}/api/notifications?page=1&limit=50`, {
+        credentials: "include",
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.error || "Could not load notifications.");
+      }
+
+      setItems(Array.isArray(data.notifications) ? data.notifications : []);
+    } catch (err) {
+      setError(err.message || "Could not connect to Roamly.");
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    loadNotifications();
+  }, [loadNotifications]);
+
+  async function markRead(item) {
+    if (item.is_read || busyId !== null) return;
+    setBusyId(item.id);
+    setError("");
+
+    try {
+      const response = await fetch(`${API}/api/notifications/${item.id}/read`, {
+        method: "PUT",
+        credentials: "include",
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.error || "Could not mark notification as read.");
+      }
+
+      setItems(current => current.map(entry =>
+        entry.id === item.id ? { ...entry, is_read: true } : entry
+      ));
+    } catch (err) {
+      setError(err.message || "Could not update notification.");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function markAllRead() {
+    if (markingAll || !items.some(item => !item.is_read)) return;
+    setMarkingAll(true);
+    setError("");
+
+    try {
+      const response = await fetch(`${API}/api/notifications/read-all`, {
+        method: "PUT",
+        credentials: "include",
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.error || "Could not mark notifications as read.");
+      }
+
+      setItems(current => current.map(item => ({ ...item, is_read: true })));
+    } catch (err) {
+      setError(err.message || "Could not update notifications.");
+    } finally {
+      setMarkingAll(false);
+    }
+  }
+
+  if (authLoading || loading) {
+    return (
+      <main className="notifications-page">
+        <div className="notifications-shell">
+          <p className="notifications-state">Loading notifications...</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (!user) {
+    return (
+      <main className="notifications-page">
+        <div className="notifications-shell">
+          <Link to="/" className="notifications-brand">Roamly</Link>
+          <section className="notifications-panel notifications-empty">
+            <h1>Sign in to view notifications</h1>
+            <p>Your travel updates will appear here.</p>
+            <Link to="/auth" className="notifications-primary">Log in</Link>
+          </section>
+        </div>
+      </main>
+    );
+  }
+
+  const unreadCount = items.filter(item => !item.is_read).length;
+
+  return (
+    <main className="notifications-page">
+      <div className="notifications-shell">
+        <header className="notifications-header">
+          <div>
+            <Link to="/" className="notifications-brand">Roamly</Link>
+            <p className="notifications-kicker">YOUR TRAVEL UPDATES</p>
+            <h1>Notifications</h1>
+            <p className="notifications-subtitle">
+              {unreadCount ? `${unreadCount} unread notification${unreadCount === 1 ? "" : "s"}` : "You're all caught up."}
+            </p>
+          </div>
+          <Link to="/explore" className="notifications-back">Explore</Link>
+        </header>
+
+        <section className="notifications-panel">
+          <div className="notifications-toolbar">
+            <span>Recent activity</span>
+            <button
+              type="button"
+              onClick={markAllRead}
+              disabled={!unreadCount || markingAll}
+            >
+              {markingAll ? "Updating..." : "Mark all as read"}
+            </button>
+          </div>
+
+          {error && <p className="notifications-error" role="alert">{error}</p>}
+
+          {!items.length && !error && (
+            <div className="notifications-empty">
+              <div className="notifications-empty-icon" aria-hidden="true">N</div>
+              <h2>No notifications yet</h2>
+              <p>Application updates and other important activity will show up here.</p>
+            </div>
+          )}
+
+          <div className="notifications-list">
+            {items.map(item => (
+              <article
+                className={`notification-item${item.is_read ? "" : " is-unread"}`}
+                key={item.id}
+              >
+                <span className="notification-indicator" aria-hidden="true" />
+                <div className="notification-content">
+                  <div className="notification-item-top">
+                    <h2>{item.title || "Roamly update"}</h2>
+                    <time>{formatDate(item.created_at)}</time>
+                  </div>
+                  <p>{item.message || "You have a new update."}</p>
+                  <div className="notification-actions">
+                    {item.type === "new_application" && (
+                      <Link to="/host/applications">View applications</Link>
+                    )}
+
+                    {item.type === "new_message" && (
+                      <Link to="/chat">Open chat</Link>
+                    )}
+                    {!item.is_read && (
+                      <button
+                        type="button"
+                        onClick={() => markRead(item)}
+                        disabled={busyId !== null}
+                      >
+                        {busyId === item.id ? "Updating..." : "Mark as read"}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      </div>
+    </main>
+  );
+}

@@ -196,40 +196,6 @@ function Home() {
   const { user, loading, logout } = useAuth();
 
   const [unreadNotifications, setUnreadNotifications] = useState(0);
-  const [unreadMessages, setUnreadMessages] = useState(0);
-
-  const loadUnreadMessages = useCallback(async () => {
-    if (!user) {
-      setUnreadMessages(0);
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        "http://localhost:3000/api/conversations?page=1&limit=50",
-        { credentials: "include" }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to load conversations");
-      }
-
-      const data = await response.json();
-      const conversations = Array.isArray(data.conversations)
-        ? data.conversations
-        : [];
-
-      const totalUnread = conversations.reduce(
-        (total, conversation) =>
-          total + Number(conversation.unread_count || 0),
-        0
-      );
-
-      setUnreadMessages(totalUnread);
-    } catch (error) {
-      console.error("Unread messages error:", error);
-    }
-  }, [user]);
 
   const loadUnreadNotifications = useCallback(async () => {
     if (!user) {
@@ -262,15 +228,13 @@ function Home() {
 
   useEffect(() => {
     loadUnreadNotifications();
-    loadUnreadMessages();
 
     const interval = setInterval(() => {
       loadUnreadNotifications();
-      loadUnreadMessages();
     }, 15000);
 
     return () => clearInterval(interval);
-  }, [loadUnreadNotifications, loadUnreadMessages]);
+  }, [loadUnreadNotifications]);
 
   const [opportunities, setOpportunities] = useState([]);
   const [opportunitiesLoading, setOpportunitiesLoading] = useState(true);
@@ -343,12 +307,7 @@ function Home() {
             ) : user ? (
               <>
                 <Link to="/chat" className="nav-chat">
-                  <span>Chat</span>
-                  {unreadMessages > 0 && (
-                    <span className="nav-chat-badge">
-                      {unreadMessages > 99 ? "99+" : unreadMessages}
-                    </span>
-                  )}
+                  Chat
                 </Link>
 
                 <Link to="/notifications" className="nav-notifications">

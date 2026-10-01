@@ -1,0 +1,307 @@
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import "./HostApplications.css";
+
+const API = "http://localhost:3000";
+
+function HostApplications() {
+  const navigate = useNavigate();
+
+  const [applications, setApplications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [actionId, setActionId] = useState(null);
+  const [error, setError] = useState("");
+  const [actionMessage, setActionMessage] = useState("");
+
+  async function loadApplications() {
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch(`${API}/api/host/applications`, {
+        credentials: "include",
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data?.error || "Failed to load applications."
+        );
+      }
+
+      setApplications(data.applications || []);
+    } catch (err) {
+      console.error("Load host applications error:", err);
+      setError(err.message || "Failed to load applications.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadApplications();
+  }, []);
+
+  async function updateApplication(application, status) {
+    if (actionId) {
+      return;
+    }
+
+    setActionId(application.id);
+    setError("");
+    setActionMessage("");
+
+    try {
+      const response = await fetch(
+        `${API}/api/host/applications/${application.id}`,
+        {
+          method: "PUT",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            status,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data?.error || "Failed to update application."
+        );
+      }
+
+      setApplications((current) =>
+        current.map((item) =>
+          item.id === application.id
+            ? {
+                ...item,
+                status: data?.application?.status || status,
+              }
+            : item
+        )
+      );
+
+      if (status === "accepted") {
+        const conversationResponse = await fetch(
+          `${API}/api/conversations`,
+          {
+            method: "POST",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              user_id: application.traveler_id,
+            }),
+          }
+        );
+
+        const conversationData = await conversationResponse.json();
+
+        if (!conversationResponse.ok) {
+          throw new Error(
+            conversationData?.error ||
+              "Application accepted, but chat could not be opened."
+          );
+        }
+
+        setActionMessage("Application accepted. Opening chat...");
+
+        setTimeout(() => {
+          navigate("/chat");
+        }, 400);
+
+        return;
+      }
+
+      setActionMessage("Application declined.");
+    } catch (err) {
+      console.error("Update application error:", err);
+      setError(err.message || "Failed to update application.");
+    } finally {
+      setActionId(null);
+    }
+  }
+
+  return (
+    <div className="host-applications-page">
+      <nav className="host-applications-nav">
+        <Link to="/" className="host-applications-brand">
+          Roamly
+        </Link>
+
+        <div className="host-applications-nav-links">
+          <Link to="/explore">Explore</Link>
+          <Link to="/host/create">Create opportunity</Link>
+        </div>
+      </nav>
+
+      <main className="host-applications-main">
+        <header className="host-applications-header">
+          <span>HOST AREA</span>
+
+          <h1>Applications.</h1>
+
+          <p>
+            Review travelers who want to join your opportunities.
+            Accept an application to start a conversation.
+          </p>
+        </header>
+
+        {error && (
+          <div className="host-applications-message host-applications-error">
+            {error}
+          </div>
+        )}
+
+        {actionMessage && (
+          <div className="host-applications-message host-applications-success">
+            {actionMessage}
+          </div>
+        )}
+
+        {loading ? (
+          <div className="host-applications-state">
+            Loading applications...
+          </div>
+        ) : applications.length === 0 ? (
+          <div className="host-applications-empty">
+            <span>NO APPLICATIONS YET</span>
+            <h2>Your opportunities are waiting.</h2>
+            <p>
+              When travelers apply, their applications will appear
+              here.
+            </p>
+
+            <Link
+              to="/host/create"
+              className="host-applications-create"
+            >
+              Create an opportunity
+            </Link>
+          </div>
+        ) : (
+          <section className="host-applications-list">
+            {applications.map((application) => {
+              const isPending = application.status === "pending";
+              const isAccepted = application.status === "accepted";
+              const isDeclined = application.status === "declined";
+              const isBusy = actionId === application.id;
+
+              return (
+                <article
+                  className="host-application-card"
+                  key={application.id}
+                >
+                  <div className="host-application-top">
+                    <div>
+                      <span className="host-application-label">
+                        APPLICATION
+                      </span>
+
+<Link
+  to={`/profile/${application.traveler_id}`}
+  className="host-application-traveler-link"
+>
+  <h2>
+    {application.traveler_name || "Traveler"}
+  </h2>
+</Link>
+                      <p className="host-application-location">
+                        {[application.traveler_city, application.traveler_country]
+                          .filter(Boolean)
+                          .join(", ") || "Location not provided"}
+                      </p>
+                    </div>
+
+                    <span
+                      className={`host-application-status status-${application.status}`}
+                    >
+                      {application.status}
+                    </span>
+                  </div>
+
+                  <div className="host-application-opportunity">
+                    <span>OPPORTUNITY</span>
+                    <strong>
+                      {application.opportunity_title}
+                    </strong>
+                  </div>
+
+                  {application.traveler_bio && (
+                    <div className="host-application-section">
+                      <span>ABOUT THE TRAVELER</span>
+                      <p>{application.traveler_bio}</p>
+                    </div>
+                  )}
+
+                  <div className="host-application-section">
+                    <span>MESSAGE</span>
+
+                    <p>
+                      {application.message ||
+                        "The traveler did not include a message."}
+                    </p>
+                  </div>
+
+                  {isPending && (
+                    <div className="host-application-actions">
+                      <button
+                        type="button"
+                        className="host-application-decline"
+                        onClick={() =>
+                          updateApplication(
+                            application,
+                            "declined"
+                          )
+                        }
+                        disabled={isBusy}
+                      >
+                        {isBusy ? "Updating..." : "Decline"}
+                      </button>
+
+                      <button
+                        type="button"
+                        className="host-application-accept"
+                        onClick={() =>
+                          updateApplication(
+                            application,
+                            "accepted"
+                          )
+                        }
+                        disabled={isBusy}
+                      >
+                        {isBusy ? "Updating..." : "Accept & chat"}
+                      </button>
+                    </div>
+                  )}
+
+                  {isAccepted && (
+                    <div className="host-application-accepted">
+                      Application accepted. A conversation is available
+                      in Chat.
+                      <Link to="/chat">Open Chat</Link>
+                    </div>
+                  )}
+
+                  {isDeclined && (
+                    <div className="host-application-declined">
+                      This application was declined.
+                    </div>
+                  )}
+                </article>
+              );
+            })}
+          </section>
+        )}
+      </main>
+    </div>
+  );
+}
+
+export default HostApplications;

@@ -120,29 +120,13 @@ async function loadConversations() {
 );
 
 
-      const readResponse = await fetch(
+      await fetch(
         `${API}/api/conversations/${conversation.id}/read`,
         {
           method: "PUT",
           credentials: "include",
         }
       );
-
-      if (readResponse.ok) {
-        setConversations((currentConversations) =>
-          currentConversations.map((item) =>
-            item.id === conversation.id
-              ? { ...item, unread_count: 0 }
-              : item
-          )
-        );
-
-        setSelectedConversation((current) =>
-          current && current.id === conversation.id
-            ? { ...current, unread_count: 0 }
-            : current
-        );
-      }
 
 
     } catch (err) {
@@ -231,15 +215,20 @@ async function refreshMessages() {
         data.message,
       ]);
 
-setMessageText("");
 
-await loadConversations();
+      setMessageText("");
 
-} catch (err) {
-  console.error(err);
 
-  setError(err.message);
-} finally {
+      await loadConversations();
+
+
+
+
+    } catch (err) {
+      console.error(err);
+      setError(err.message);
+
+    } finally {
       setSending(false);
     }
   }
@@ -260,15 +249,6 @@ useEffect(() => {
   }
 }, [authLoading, user]);
 
-useEffect(() => {
-  if (messages.length) {
-    setTimeout(() => {
-      bottomRef.current?.scrollIntoView({
-        behavior: "smooth",
-      });
-    }, 50);
-  }
-}, [messages]);
 
 useEffect(() => {
   if (!selectedConversation) {
@@ -645,6 +625,7 @@ return (
           )}
 
 
+          <div ref={bottomRef} />
 
         </div>
 

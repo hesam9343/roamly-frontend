@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import "./Profile.css";
@@ -116,8 +117,9 @@ function StarIcon({ filled = false }) {
 }
 
 function Profile() {
+  const { id } = useParams();
+  const isPublicProfile = Boolean(id);
   const { user, loading, loadUser } = useAuth();
-
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -146,9 +148,11 @@ function Profile() {
     birth_year: "",
     avatar_url: "",
   });
-
+const [profileUser, setProfileUser] = useState(null);
+  const [profileUserLoading, setProfileUserLoading] = useState(false);
+  const displayedUser = isPublicProfile ? profileUser : user;
   useEffect(() => {
-    if (!user) {
+    if (!user || isPublicProfile) {
       setStatsLoading(false);
       return;
     }
@@ -199,7 +203,45 @@ function Profile() {
   }, [user]);
 
   useEffect(() => {
-    if (!user) {
+    if (!isPublicProfile) {
+      setProfileUser(null);
+      setProfileUserLoading(false);
+      return;
+    }
+
+    async function loadPublicProfile() {
+      setProfileUserLoading(true);
+
+      try {
+        const response = await fetch(
+          `http://localhost:3000/api/users/${id}`,
+          {
+            credentials: "include",
+          }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.error || "Failed to load profile."
+          );
+        }
+
+        setProfileUser(data.user || null);
+      } catch (err) {
+        console.error("PUBLIC PROFILE ERROR:", err);
+        setProfileUser(null);
+      } finally {
+        setProfileUserLoading(false);
+      }
+    }
+
+    loadPublicProfile();
+  }, [id, isPublicProfile]);
+
+  useEffect(() => {
+    if (!displayedUser) {
       setReviewsLoading(false);
       return;
     }
@@ -207,7 +249,7 @@ function Profile() {
     async function loadReviews() {
       try {
         const response = await fetch(
-          `http://localhost:3000/api/users/${user.id}/reviews`,
+          `http://localhost:3000/api/users/${displayedUser.id}/reviews`,
           {
             credentials: "include",
           }
@@ -235,8 +277,7 @@ function Profile() {
     }
 
     loadReviews();
-  }, [user]);
-
+  }, [displayedUser]);
   function startEditing() {
     setForm({
       display_name: user?.display_name || "",
@@ -344,7 +385,7 @@ function Profile() {
     );
   }
 
-  if (loading) {
+if (loading || profileUserLoading) {
     return (
       <div className="profile-page">
         <div className="profile-loading">
@@ -355,7 +396,7 @@ function Profile() {
     );
   }
 
-  if (!user) {
+if (!displayedUser) {
     return (
       <div className="profile-page">
         <header className="profile-navbar">
@@ -416,13 +457,13 @@ function Profile() {
           <div className="profile-card-inner">
             <div className="profile-avatar-wrap">
               <div className="profile-avatar">
-                {user.avatar_url ? (
+                {displayedUser.avatar_url ? (
                   <img
-                    src={user.avatar_url}
-                    alt={user.display_name || "Profile"}
+                    src={displayedUser.avatar_url}
+                    alt={displayedUser.display_name || "Profile"}
                   />
                 ) : (
-                  user.display_name?.charAt(0)?.toUpperCase() || "R"
+                  displayedUser.display_name?.charAt(0)?.toUpperCase() || "R"
                 )}
               </div>
             </div>
@@ -431,15 +472,15 @@ function Profile() {
               <div className="profile-topline">
                 <div>
                   <span className="profile-eyebrow">
-                    {user.role === "host" ? "HOST" : "TRAVELER"}
+                    {displayedUser.role === "host" ? "HOST" : "TRAVELER"}
                   </span>
 
                   {!editing && (
-                    <h1>{user.display_name || "Roamly User"}</h1>
+                    <h1>{displayedUser.display_name || "Roamly User"}</h1>
                   )}
                 </div>
 
-                {!editing && (
+                {!editing && !isPublicProfile && (
                   <button
                     type="button"
                     className="profile-edit-button profile-edit-top"
@@ -453,74 +494,30 @@ function Profile() {
 
               {!editing ? (
                 <>
-                  <p className="profile-email">
-                    {user.email}
-                  </p>
+                  {!isPublicProfile && (
+                    <div className="profile-stats">
+                      <div className="profile-stat">
+                        <strong>
+                          {statsLoading ? "—" : stats.trips}
+                        </strong>
+                        <span>Trips</span>
+                      </div>
 
-                  {success && (
-                    <div className="profile-success">
-                      {success}
+                      <div className="profile-stat">
+                        <strong>
+                          {statsLoading ? "—" : stats.applications}
+                        </strong>
+                        <span>Applications</span>
+                      </div>
+
+                      <div className="profile-stat">
+                        <strong>
+                          {statsLoading ? "—" : stats.favorites}
+                        </strong>
+                        <span>Favorites</span>
+                      </div>
                     </div>
                   )}
-
-                  <div className="profile-info">
-                    <div className="profile-info-item">
-                      <span>
-                        <GlobeIcon />
-                        Country
-                      </span>
-                      <strong>
-                        {user.country || "Not added"}
-                      </strong>
-                    </div>
-
-                    <div className="profile-info-item">
-                      <span>
-                        <MapPinIcon />
-                        City
-                      </span>
-                      <strong>
-                        {user.city || "Not added"}
-                      </strong>
-                    </div>
-
-                    <div className="profile-info-item">
-                      <span>
-                        <UserIcon />
-                        Account
-                      </span>
-                      <strong>
-                        {user.role === "host"
-                          ? "Host"
-                          : "Traveler"}
-                      </strong>
-                    </div>
-                  </div>
-
-                  <div className="profile-stats">
-                    <div className="profile-stat">
-                      <strong>
-                        {statsLoading ? "—" : stats.trips}
-                      </strong>
-                      <span>Trips</span>
-                    </div>
-
-                    <div className="profile-stat">
-                      <strong>
-                        {statsLoading
-                          ? "—"
-                          : stats.applications}
-                      </strong>
-                      <span>Applications</span>
-                    </div>
-
-                    <div className="profile-stat">
-                      <strong>
-                        {statsLoading ? "—" : stats.favorites}
-                      </strong>
-                      <span>Favorites</span>
-                    </div>
-                  </div>
 
                   <div className="profile-rating">
                     <div className="profile-rating-main">
@@ -588,7 +585,7 @@ function Profile() {
                       <span>About</span>
 
                       <p>
-                        {user.bio ||
+                        {displayedUser.bio ||
                           "Tell the Roamly community a little about yourself."}
                       </p>
                     </div>
@@ -597,9 +594,9 @@ function Profile() {
                       <span>Languages</span>
 
                       <p>
-                        {Array.isArray(user.languages)
+                        {Array.isArray(displayedUser.languages)
                           ? user.languages.join(", ")
-                          : user.languages || "Not added"}
+                          : displayedUser.languages || "Not added"}
                       </p>
                     </div>
 
@@ -607,9 +604,9 @@ function Profile() {
                       <span>Skills</span>
 
                       <p>
-                        {Array.isArray(user.skills)
+                        {Array.isArray(displayedUser.skills)
                           ? user.skills.join(", ")
-                          : user.skills || "Not added"}
+                          : displayedUser.skills || "Not added"}
                       </p>
                     </div>
                   </div>

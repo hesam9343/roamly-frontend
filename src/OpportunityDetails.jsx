@@ -1,85 +1,34 @@
 import { Link, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
 import "./OpportunityDetails.css";
+const API = "http://localhost:3000";
 
-const opportunities = [
-  {
-    id: 1,
-    title: "Help at a small organic farm",
-    location: "Portugal",
-    category: "Farming",
-    duration: "2–4 weeks",
-    accommodation: true,
-    food: true,
-    imageType: "farm",
-    description:
-      "Join a small organic farm and help with everyday tasks while experiencing rural life in Portugal.",
-    tasks: [
-      "Help with planting and harvesting",
-      "Maintain the garden",
-      "Help with basic farm tasks",
-      "Keep shared areas organized",
-    ],
-    host: "Maria & Family",
-  },
-  {
-    id: 2,
-    title: "Help with a family guesthouse",
-    location: "France",
-    category: "Hospitality",
-    duration: "1–3 weeks",
-    accommodation: true,
-    food: true,
-    imageType: "house",
-    description:
-      "Help a welcoming family run their countryside guesthouse and meet travelers from different parts of the world.",
-    tasks: [
-      "Help prepare rooms",
-      "Welcome guests",
-      "Assist with basic cleaning",
-      "Help around the property",
-    ],
-    host: "Claire & Family",
-  },
-  {
-    id: 3,
-    title: "Help build a sustainable garden",
-    location: "Spain",
-    category: "Community",
-    duration: "2–6 weeks",
-    accommodation: true,
-    food: false,
-    imageType: "garden",
-    description:
-      "Take part in a community project focused on creating and maintaining a sustainable garden.",
-    tasks: [
-      "Plant and maintain vegetables",
-      "Prepare garden areas",
-      "Help with composting",
-      "Support community activities",
-    ],
-    host: "Green Community",
-  },
-  {
-    id: 4,
-    title: "Support a countryside retreat",
-    location: "Italy",
-    category: "Hospitality",
-    duration: "1–4 weeks",
-    accommodation: true,
-    food: true,
-    imageType: "retreat",
-    description:
-      "Help at a peaceful countryside retreat and exchange your time and skills for a unique travel experience.",
-    tasks: [
-      "Help maintain common areas",
-      "Assist guests",
-      "Help with gardening",
-      "Support daily retreat activities",
-    ],
-    host: "Luca & Team",
-  },
-];
+function getImageType(category) {
+  const value = String(category || "").toLowerCase();
 
+  if (value.includes("farm")) return "farm";
+  if (value.includes("hospital")) return "house";
+  if (value.includes("community")) return "garden";
+  if (value.includes("education")) return "retreat";
+
+  return "farm";
+}
+
+function formatDuration(minWeeks, maxWeeks) {
+  if (minWeeks && maxWeeks) {
+    return `${minWeeks}–${maxWeeks} weeks`;
+  }
+
+  if (minWeeks) {
+    return `${minWeeks}+ weeks`;
+  }
+
+  if (maxWeeks) {
+    return `Up to ${maxWeeks} weeks`;
+  }
+
+  return "Flexible duration";
+}
 function LocationIcon() {
   return (
     <svg viewBox="0 0 24 24" width="17" height="17" fill="none">
@@ -244,22 +193,198 @@ function OpportunityArt({ type }) {
 function OpportunityDetails() {
   const { id } = useParams();
 
-  const opportunity = opportunities.find(
-    (item) => item.id === Number(id)
-  );
+  const [opportunity, setOpportunity] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+const [saveMessage, setSaveMessage] = useState("");
+const [showApply, setShowApply] = useState(false);
+const [applying, setApplying] = useState(false);
+const [applicationMessage, setApplicationMessage] = useState("");
+const [applyMessage, setApplyMessage] = useState(""); 
+ useEffect(() => {
+    const controller = new AbortController();
 
-  if (!opportunity) {
+    async function loadOpportunity() {
+      setLoading(true);
+      setError("");
+
+      try {
+        const response = await fetch(
+          `${API}/api/opportunities/${id}`,
+          {
+            credentials: "include",
+            signal: controller.signal,
+          }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data?.error || "Failed to load opportunity."
+          );
+        }
+
+        const item = data.opportunity;
+
+        setOpportunity({
+          ...item,
+          location: [item.city, item.country]
+            .filter(Boolean)
+            .join(", "),
+          duration: formatDuration(
+            item.duration_min_weeks,
+            item.duration_max_weeks
+          ),
+          imageType: getImageType(item.category),
+          host: item.host_name || "Roamly Host",
+          tasks: [],
+        });
+      } catch (err) {
+        if (err.name === "AbortError") {
+          return;
+        }
+
+        console.error("Opportunity details error:", err);
+        setError(err.message || "Failed to load opportunity.");
+        setOpportunity(null);
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
+      }
+    }
+
+    if (id) {
+      loadOpportunity();
+    }
+
+    return () => {
+      controller.abort();
+    };
+  }, [id]);
+async function handleSave() {
+  if (!opportunity || saving) {
+    return;
+  }
+
+  setSaving(true);
+  setSaveMessage("");
+
+  try {
+    const response = await fetch(
+      "http://localhost:3000/api/favorites",
+      {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          opportunity_id: opportunity.id,
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data?.error || "Failed to save opportunity."
+      );
+    }
+
+    setSaveMessage("Opportunity saved.");
+  } catch (err) {
+    console.error("Save opportunity error:", err);
+    setSaveMessage(
+      err.message || "Failed to save opportunity."
+    );
+  } finally {
+    setSaving(false);
+  }
+}
+ 
+async function handleApply() {
+  if (!opportunity || applying) {
+    return;
+  }
+
+  setApplying(true);
+  setApplyMessage("");
+
+  try {
+    const response = await fetch(
+      `${API}/api/applications`,
+      {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          opportunity_id: opportunity.id,
+          message: applicationMessage.trim() || null,
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data?.error || "Failed to submit application."
+      );
+    }
+
+    setApplyMessage(
+      "Application submitted successfully."
+    );
+    setApplicationMessage("");
+  } catch (err) {
+    console.error("Apply opportunity error:", err);
+    setApplyMessage(
+      err.message || "Failed to submit application."
+    );
+  } finally {
+    setApplying(false);
+  }
+}
+
+ if (loading) {
+    return (
+      <div className="details-page">
+        <div className="not-found">
+          <span className="details-eyebrow">
+            ROAMLY / LOADING
+          </span>
+
+          <h1>Loading opportunity</h1>
+
+          <p>
+            Please wait while we load the opportunity details.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !opportunity) {
     return (
       <div className="details-page">
         <div className="not-found">
           <div className="not-found-number">404</div>
 
-          <span className="details-eyebrow">ROAMLY / ERROR</span>
+          <span className="details-eyebrow">
+            ROAMLY / ERROR
+          </span>
 
           <h1>Opportunity not found</h1>
 
           <p>
-            This opportunity doesn't exist or may have been removed.
+            {error ||
+              "This opportunity doesn't exist or may have been removed."}
           </p>
 
           <Link to="/explore" className="back-button">
@@ -377,22 +502,34 @@ function OpportunityDetails() {
                   <h2>What you'll do</h2>
                 </div>
               </div>
+<div className="task-list">
+  {opportunity.tasks.length > 0 ? (
+    opportunity.tasks.map((task, index) => (
+      <div className="task-item" key={task}>
+        <span className="task-number">
+          0{index + 1}
+        </span>
 
-              <div className="task-list">
-                {opportunity.tasks.map((task, index) => (
-                  <div className="task-item" key={task}>
-                    <span className="task-number">
-                      0{index + 1}
-                    </span>
+        <span className="task-check">
+          <CheckIcon />
+        </span>
 
-                    <span className="task-check">
-                      <CheckIcon />
-                    </span>
+        <p>{task}</p>
+      </div>
+    ))
+  ) : (
+    <div className="task-item">
+      <span className="task-check">
+        <CheckIcon />
+      </span>
 
-                    <p>{task}</p>
-                  </div>
-                ))}
-              </div>
+      <p>
+        Tasks and responsibilities will be discussed with the host
+        before the experience begins.
+      </p>
+    </div>
+  )}
+</div>
             </section>
 
             <section className="details-section host-section">
@@ -418,12 +555,13 @@ function OpportunityDetails() {
                   <strong>{opportunity.host}</strong>
                   <p>Host on Roamly</p>
                 </div>
-
-                <Link
-                  to="/explore"
-                  className="host-link"
-                  aria-label="View host"
-                >
+        
+                  <Link
+  to={`/host/${opportunity.host_id}`}
+  className="host-link"
+  aria-label="View host"
+>
+                
                   <ArrowIcon />
                 </Link>
               </div>
@@ -447,22 +585,102 @@ function OpportunityDetails() {
               your experience.
             </p>
 
-            <button type="button" className="apply-button">
-              <span>Apply for this opportunity</span>
-              <ArrowIcon />
-            </button>
+           
+<button
+  type="button"
+  className="apply-button"
+  onClick={() => {
+    setApplyMessage("");
+    setShowApply(true);
+  }}
+>
+  <span>Apply for this opportunity</span>
+  <ArrowIcon />
+</button>
 
-            <button type="button" className="save-button">
-              <BookmarkIcon />
-              <span>Save opportunity</span>
-            </button>
+<button
+  type="button"
+  className="save-button"
+  onClick={handleSave}
+  disabled={saving}
+>
+  <BookmarkIcon />
+  <span>{saving ? "Saving..." : "Save opportunity"}</span>
+</button>
+
+{saveMessage && (
+  <p className="save-message" role="status">
+    {saveMessage}
+  </p>
+)}
 
             <div className="apply-card-footer">
               <span />
               <p>Your application starts a conversation with the host.</p>
             </div>
           </aside>
-        </section>
+          {showApply && (
+  <div className="apply-modal-overlay">
+    <div className="apply-modal" role="dialog" aria-modal="true">
+      <button
+        type="button"
+        className="apply-modal-close"
+        onClick={() => setShowApply(false)}
+        aria-label="Close"
+      >
+        ×
+      </button>
+
+      <span className="apply-modal-eyebrow">
+        START A CONVERSATION
+      </span>
+
+      <h2>Apply for this opportunity</h2>
+
+      <p>
+        Introduce yourself to the host and tell them why
+        this experience interests you.
+      </p>
+
+      <textarea
+        value={applicationMessage}
+        onChange={(event) =>
+          setApplicationMessage(event.target.value)
+        }
+        placeholder="Write a message to the host..."
+        maxLength={5000}
+        rows={7}
+      />
+
+      {applyMessage && (
+        <p className="apply-message" role="status">
+          {applyMessage}
+        </p>
+      )}
+
+      <div className="apply-modal-actions">
+        <button
+          type="button"
+          className="apply-modal-cancel"
+          onClick={() => setShowApply(false)}
+          disabled={applying}
+        >
+          Cancel
+        </button>
+
+        <button
+          type="button"
+          className="apply-modal-submit"
+          onClick={handleApply}
+          disabled={applying}
+        >
+          {applying ? "Sending..." : "Send application"}
+        </button>
+      </div>
+    </div>
+  </div>
+)} 
+       </section>
       </main>
     </div>
   );

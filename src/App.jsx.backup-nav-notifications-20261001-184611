@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import { AuthProvider, useAuth } from "./AuthContext";
 import "./App.css";
@@ -195,83 +195,6 @@ function Globe3D() {
 function Home() {
   const { user, loading, logout } = useAuth();
 
-  const [unreadNotifications, setUnreadNotifications] = useState(0);
-  const [unreadMessages, setUnreadMessages] = useState(0);
-
-  const loadUnreadMessages = useCallback(async () => {
-    if (!user) {
-      setUnreadMessages(0);
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        "http://localhost:3000/api/conversations?page=1&limit=50",
-        { credentials: "include" }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to load conversations");
-      }
-
-      const data = await response.json();
-      const conversations = Array.isArray(data.conversations)
-        ? data.conversations
-        : [];
-
-      const totalUnread = conversations.reduce(
-        (total, conversation) =>
-          total + Number(conversation.unread_count || 0),
-        0
-      );
-
-      setUnreadMessages(totalUnread);
-    } catch (error) {
-      console.error("Unread messages error:", error);
-    }
-  }, [user]);
-
-  const loadUnreadNotifications = useCallback(async () => {
-    if (!user) {
-      setUnreadNotifications(0);
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        "http://localhost:3000/api/notifications?page=1&limit=50",
-        { credentials: "include" }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to load notifications");
-      }
-
-      const data = await response.json();
-      const notifications = Array.isArray(data.notifications)
-        ? data.notifications
-        : [];
-
-      setUnreadNotifications(
-        notifications.filter((notification) => !notification.is_read).length
-      );
-    } catch (error) {
-      console.error("Unread notifications error:", error);
-    }
-  }, [user]);
-
-  useEffect(() => {
-    loadUnreadNotifications();
-    loadUnreadMessages();
-
-    const interval = setInterval(() => {
-      loadUnreadNotifications();
-      loadUnreadMessages();
-    }, 15000);
-
-    return () => clearInterval(interval);
-  }, [loadUnreadNotifications, loadUnreadMessages]);
-
   const [opportunities, setOpportunities] = useState([]);
   const [opportunitiesLoading, setOpportunitiesLoading] = useState(true);
 
@@ -343,21 +266,7 @@ function Home() {
             ) : user ? (
               <>
                 <Link to="/chat" className="nav-chat">
-                  <span>Chat</span>
-                  {unreadMessages > 0 && (
-                    <span className="nav-chat-badge">
-                      {unreadMessages > 99 ? "99+" : unreadMessages}
-                    </span>
-                  )}
-                </Link>
-
-                <Link to="/notifications" className="nav-notifications">
-                  <span>Notifications</span>
-                  {unreadNotifications > 0 && (
-                    <span className="nav-notifications-badge">
-                      {unreadNotifications > 99 ? "99+" : unreadNotifications}
-                    </span>
-                  )}
+                  Chat
                 </Link>
 
                 <Link to="/profile" className="nav-user">

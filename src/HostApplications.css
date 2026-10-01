@@ -1,0 +1,354 @@
+.host-applications-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(
+      circle at 15% 10%,
+      rgba(255, 255, 255, 0.055),
+      transparent 32%
+    ),
+    #090b0f;
+  color: #fff;
+}
+
+.host-applications-nav {
+  width: min(1180px, calc(100% - 48px));
+  min-height: 76px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.host-applications-brand {
+  color: #fff;
+  text-decoration: none;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+.host-applications-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.host-applications-nav-links a {
+  color: #8f98a8;
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.host-applications-nav-links a:hover {
+  color: #fff;
+}
+
+.host-applications-main {
+  width: min(920px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 82px 0 100px;
+}
+
+.host-applications-header {
+  max-width: 680px;
+  margin-bottom: 54px;
+}
+
+.host-applications-header > span {
+  display: inline-block;
+  margin-bottom: 16px;
+  color: #8f98a8;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+.host-applications-header h1 {
+  margin: 0;
+  font-size: clamp(44px, 7vw, 72px);
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+}
+
+.host-applications-header p {
+  max-width: 620px;
+  margin: 24px 0 0;
+  color: #9da5b2;
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+.host-applications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.host-application-card {
+  padding: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.host-application-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.host-application-label,
+.host-application-opportunity > span,
+.host-application-section > span {
+  display: block;
+  margin-bottom: 8px;
+  color: #68717e;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+.host-application-top h2 {
+  margin: 0;
+  color: #fff;
+  font-size: 25px;
+  letter-spacing: -0.03em;
+}
+
+.host-application-location {
+  margin: 7px 0 0;
+  color: #737c89;
+  font-size: 13px;
+}
+
+.host-application-status {
+  flex: 0 0 auto;
+  padding: 7px 10px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.status-pending {
+  background: rgba(255, 255, 255, 0.07);
+  color: #c6ccd5;
+}
+
+.status-accepted {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.status-declined {
+  background: rgba(255, 255, 255, 0.045);
+  color: #777f8b;
+}
+
+.host-application-opportunity {
+  margin-top: 28px;
+  padding: 17px 18px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.host-application-opportunity strong {
+  color: #dce1e8;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.host-application-section {
+  margin-top: 25px;
+}
+
+.host-application-section p {
+  margin: 0;
+  color: #a1a9b5;
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+.host-application-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 28px;
+}
+
+.host-application-decline,
+.host-application-accept {
+  min-height: 45px;
+  padding: 0 18px;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.host-application-decline {
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: transparent;
+  color: #9ea6b2;
+}
+
+.host-application-accept {
+  border: 0;
+  background: #fff;
+  color: #111;
+}
+
+.host-application-decline:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+.host-application-accept:hover {
+  background: #e7e7e7;
+}
+
+.host-application-decline:disabled,
+.host-application-accept:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.host-application-accepted,
+.host-application-declined {
+  margin-top: 26px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.host-application-accepted {
+  background: rgba(255, 255, 255, 0.05);
+  color: #bfc6d0;
+}
+
+.host-application-accepted a {
+  margin-left: 8px;
+  color: #fff;
+  font-weight: 600;
+}
+
+.host-application-declined {
+  background: rgba(255, 255, 255, 0.025);
+  color: #777f8b;
+}
+
+.host-applications-message {
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  border-radius: 13px;
+  font-size: 13px;
+}
+
+.host-applications-error {
+  border: 1px solid rgba(255, 110, 110, 0.18);
+  background: rgba(255, 80, 80, 0.06);
+  color: #e1a4a4;
+}
+
+.host-applications-success {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.045);
+  color: #c5ccd5;
+}
+
+.host-applications-state {
+  padding: 60px 0;
+  color: #737c89;
+  font-size: 14px;
+}
+
+.host-applications-empty {
+  padding: 60px 34px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 22px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.host-applications-empty > span {
+  color: #68717e;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+}
+
+.host-applications-empty h2 {
+  margin: 16px 0 10px;
+  font-size: 27px;
+  letter-spacing: -0.03em;
+}
+
+.host-applications-empty p {
+  max-width: 450px;
+  margin: 0 auto 26px;
+  color: #7f8793;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.host-applications-create {
+  display: inline-flex;
+  align-items: center;
+  min-height: 45px;
+  padding: 0 18px;
+  border-radius: 12px;
+  background: #fff;
+  color: #111;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+@media (max-width: 650px) {
+  .host-applications-nav {
+    width: calc(100% - 32px);
+  }
+
+  .host-applications-nav-links {
+    gap: 12px;
+  }
+
+  .host-applications-nav-links a:first-child {
+    display: none;
+  }
+
+  .host-applications-main {
+    width: calc(100% - 32px);
+    padding: 58px 0 72px;
+  }
+
+  .host-applications-header {
+    margin-bottom: 40px;
+  }
+
+  .host-applications-header h1 {
+    font-size: 48px;
+  }
+
+  .host-application-card {
+    padding: 22px 18px;
+  }
+
+  .host-application-top {
+    flex-direction: column;
+  }
+
+  .host-application-actions {
+    flex-direction: column-reverse;
+  }
+
+  .host-application-decline,
+  .host-application-accept {
+    width: 100%;
+  }
+}

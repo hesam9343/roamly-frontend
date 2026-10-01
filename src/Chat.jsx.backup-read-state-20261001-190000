@@ -120,29 +120,13 @@ async function loadConversations() {
 );
 
 
-      const readResponse = await fetch(
+      await fetch(
         `${API}/api/conversations/${conversation.id}/read`,
         {
           method: "PUT",
           credentials: "include",
         }
       );
-
-      if (readResponse.ok) {
-        setConversations((currentConversations) =>
-          currentConversations.map((item) =>
-            item.id === conversation.id
-              ? { ...item, unread_count: 0 }
-              : item
-          )
-        );
-
-        setSelectedConversation((current) =>
-          current && current.id === conversation.id
-            ? { ...current, unread_count: 0 }
-            : current
-        );
-      }
 
 
     } catch (err) {
