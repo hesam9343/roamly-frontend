@@ -1185,26 +1185,26 @@
 }
 
 .back-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-
-  margin-top: 22px;
-  padding: 12px 17px;
-
-  border: 1px solid rgba(101, 230, 174, 0.12);
-  border-radius: 12px;
-
-  color: #07100d;
-
-  background: #65e6ae;
-
-  font-size: 10px;
-  font-weight: 800;
-
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 7px !important;
+  min-height: 36px !important;
+  padding: 0 12px !important;
+  box-sizing: border-box !important;
+  border: 1px solid rgba(255,255,255,.11) !important;
+  border-radius: 9px !important;
+  background: rgba(255,255,255,.045) !important;
+  color: #fff !important;
+  font: inherit !important;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
 }
 
 .back-button:hover {
@@ -1667,3 +1667,123 @@
     width: 100%;
   }
 }
+
+/* OPPORTUNITY BACK - HARD RESET */
+.not-found .back-button,
+.back-button {
+  all: unset !important;
+  box-sizing: border-box !important;
+
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 7px !important;
+
+  width: auto !important;
+  min-width: 0 !important;
+  height: 36px !important;
+  min-height: 36px !important;
+
+  padding: 0 12px !important;
+  margin: 0 !important;
+
+  border: 1px solid rgba(255,255,255,.11) !important;
+  border-radius: 9px !important;
+
+  background: rgba(255,255,255,.045) !important;
+  color: #fff !important;
+
+  font-family: inherit !important;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  line-height: 1 !important;
+
+  white-space: nowrap !important;
+  cursor: pointer !important;
+
+  appearance: none !important;
+  -webkit-appearance: none !important;
+}
+
+.not-found .back-button span,
+.back-button span {
+  all: unset !important;
+  display: inline !important;
+  color: #fff !important;
+  font-family: inherit !important;
+  font-size: 13px !important;
+  line-height: 1 !important;
+}
+
+.not-found .back-button:hover,
+.back-button:hover {
+  background: rgba(255,255,255,.09) !important;
+  border-color: rgba(255,255,255,.16) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+
+/* OPPORTUNITY DETAILS BACK BUTTON */
+.details-navbar .details-back {
+  all: unset !important;
+  box-sizing: border-box !important;
+
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 7px !important;
+
+  width: auto !important;
+  min-width: 0 !important;
+  height: 36px !important;
+  min-height: 36px !important;
+
+  padding: 0 12px !important;
+  margin: 0 !important;
+
+  border: 1px solid rgba(255,255,255,.11) !important;
+  border-radius: 9px !important;
+
+  background: rgba(255,255,255,.045) !important;
+  color: #fff !important;
+
+  font-family: inherit !important;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  line-height: 1 !important;
+
+  white-space: nowrap !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+
+  appearance: none !important;
+  -webkit-appearance: none !important;
+}
+
+.details-navbar .details-back span {
+  all: unset !important;
+  display: inline !important;
+  color: #fff !important;
+  font-family: inherit !important;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  line-height: 1 !important;
+}
+
+.details-navbar .details-back .details-back-arrow {
+  all: unset !important;
+  display: inline !important;
+  color: #fff !important;
+  font-size: 16px !important;
+  line-height: 1 !important;
+}
+
+.details-navbar .details-back:hover {
+  background: rgba(255,255,255,.09) !important;
+  border-color: rgba(255,255,255,.16) !important;
+  color: #fff !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+

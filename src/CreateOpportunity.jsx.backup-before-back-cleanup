@@ -110,10 +110,9 @@ function CreateOpportunity() {
           Roamly
         </Link>
 
-        <BackButton className="create-opportunity-back">
-          <span aria-hidden="true">←</span>
-          <span>Back</span>
-        </BackButton>
+        <Link to="/explore" className="create-opportunity-back">
+          Back to Explore
+        </Link>
       </nav>
 
       <main className="create-opportunity-main">

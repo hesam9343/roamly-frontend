@@ -1,8 +1,8 @@
 import { useAuth } from "./AuthContext";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import BackButton from "./BackButton";
 import "./Auth.css";
+import BackButton from "./BackButton";
 
 function Auth() {
   const navigate = useNavigate();
@@ -97,14 +97,16 @@ navigate("/");
     <div className="auth-page">
       <div className="auth-glow"></div>
 
-      <Link to="/" className="auth-logo">
-        Roamly
-      </Link>
+      <div className="auth-topbar">
+        <BackButton className="auth-back-button">
+          <span aria-hidden="true">←</span>
+          <span>Back</span>
+        </BackButton>
 
-      <BackButton className="auth-back-button">
-        <span aria-hidden="true">←</span>
-        <span>Back</span>
-      </BackButton>
+        <Link to="/" className="auth-logo">
+          Roamly
+        </Link>
+      </div>
 
       <main className="auth-container">
         <section className="auth-card">

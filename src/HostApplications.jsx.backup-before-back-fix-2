@@ -144,14 +144,14 @@ function HostApplications() {
 
       <main className="host-applications-main">
         <header className="host-applications-header">
-          <div className="host-applications-top-row">
-            <BackButton className="host-applications-back">
-              <span aria-hidden="true">←</span>
-              <span>Back</span>
-            </BackButton>
-          </div>
+        <BackButton className="host-applications-back">
+          <span aria-hidden="true">←</span>
+          <span>Back</span>
+        </BackButton>
           <span>HOST AREA</span>
+
           <h1>Applications.</h1>
+
           <p>
             Review travelers who want to join your opportunities.
             Accept an application to start a conversation.

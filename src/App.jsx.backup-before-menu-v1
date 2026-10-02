@@ -197,7 +197,6 @@ function Home() {
 
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [unreadMessages, setUnreadMessages] = useState(0);
-  const [menuOpen, setMenuOpen] = useState(false);
 
   const loadUnreadMessages = useCallback(async () => {
     if (!user) {
@@ -343,8 +342,6 @@ function Home() {
               type="button"
               className="nav-menu-button"
               aria-label="Open menu"
-              aria-expanded={menuOpen}
-              onClick={() => setMenuOpen((open) => !open)}
             >
               <span></span>
               <span></span>
@@ -353,82 +350,6 @@ function Home() {
           </div>
         </div>
       </nav>
-
-      {menuOpen && (
-        <div className="nav-drawer-overlay" onClick={() => setMenuOpen(false)}>
-          <aside
-            className="nav-drawer"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="nav-drawer-header">
-              <strong>Menu</strong>
-              <button
-                type="button"
-                className="nav-drawer-close"
-                aria-label="Close menu"
-                onClick={() => setMenuOpen(false)}
-              >
-                ×
-              </button>
-            </div>
-
-            {user ? (
-              <div className="nav-drawer-links">
-                <Link to="/chat" onClick={() => setMenuOpen(false)}>
-                  <span>Chat</span>
-                  {unreadMessages > 0 && (
-                    <span className="nav-drawer-badge">
-                      {unreadMessages > 99 ? "99+" : unreadMessages}
-                    </span>
-                  )}
-                </Link>
-
-                <Link to="/notifications" onClick={() => setMenuOpen(false)}>
-                  <span>Notifications</span>
-                  {unreadNotifications > 0 && (
-                    <span className="nav-drawer-badge">
-                      {unreadNotifications > 99 ? "99+" : unreadNotifications}
-                    </span>
-                  )}
-                </Link>
-
-                <Link to="/profile" onClick={() => setMenuOpen(false)}>
-                  Profile
-                </Link>
-
-                <Link to="/host/create" onClick={() => setMenuOpen(false)}>
-                  Create opportunity
-                </Link>
-
-                <Link to="/host/applications" onClick={() => setMenuOpen(false)}>
-                  Host applications
-                </Link>
-
-                <button
-                  type="button"
-                  className="nav-drawer-logout"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    logout();
-                  }}
-                >
-                  Log out
-                </button>
-              </div>
-            ) : (
-              <div className="nav-drawer-links">
-                <Link to="/auth" onClick={() => setMenuOpen(false)}>
-                  Log in
-                </Link>
-
-                <Link to="/auth" onClick={() => setMenuOpen(false)}>
-                  Sign up
-                </Link>
-              </div>
-            )}
-          </aside>
-        </div>
-      )}
 
       <main>
         <section className="home-hero">

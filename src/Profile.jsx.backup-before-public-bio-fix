@@ -3,7 +3,6 @@ import { useParams } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import "./Profile.css";
-import BackButton from "./BackButton";
 
 function MapPinIcon() {
   return (
@@ -441,10 +440,10 @@ if (!displayedUser) {
           Roamly
         </Link>
 
-        <BackButton className="profile-back">
-          <span>Back</span>
+        <Link to="/explore" className="profile-back">
+          <span>Explore</span>
           <ArrowIcon />
-        </BackButton>
+        </Link>
       </header>
 
       <main className="profile-container">
@@ -582,13 +581,14 @@ if (!displayedUser) {
                   )}
 
                   <div className="profile-details-grid">
-                    {displayedUser.bio?.trim() && (
-                      <div className="profile-bio">
-                        <span>About</span>
+                    <div className="profile-bio">
+                      <span>About</span>
 
-                        <p>{displayedUser.bio}</p>
-                      </div>
-                    )}
+                      <p>
+                        {displayedUser.bio ||
+                          "Tell the Roamly community a little about yourself."}
+                      </p>
+                    </div>
 
                     <div className="profile-bio">
                       <span>Languages</span>

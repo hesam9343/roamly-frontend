@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import "./Notifications.css";
-import BackButton from "./BackButton";
 
 const API = "http://localhost:3000";
 
@@ -145,7 +144,7 @@ export default function Notifications() {
               {unreadCount ? `${unreadCount} unread notification${unreadCount === 1 ? "" : "s"}` : "You're all caught up."}
             </p>
           </div>
-          <BackButton className="notifications-back">Back</BackButton>
+          <Link to="/explore" className="notifications-back">Explore</Link>
         </header>
 
         <section className="notifications-panel">

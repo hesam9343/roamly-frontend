@@ -1108,3 +1108,37 @@
     height: 12px;
   }
 }
+
+/* Final Back button */
+.profile-back {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.045);
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 140ms ease, border-color 140ms ease, transform 140ms ease;
+}
+
+.profile-back:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.17);
+}
+
+.profile-back:active {
+  transform: translateY(1px);
+}
+
+.profile-back:focus-visible {
+  outline: 2px solid rgba(74, 150, 117, 0.42);
+  outline-offset: 2px;
+}

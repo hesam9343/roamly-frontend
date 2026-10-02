@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "./AuthContext";
-import BackButton from "./BackButton";
 import "./Chat.css";
 
 const API = "http://localhost:3000";
@@ -328,10 +327,6 @@ return (
       >
 
         <div className="chat-sidebar-header">
-          <BackButton className="chat-page-back-button">
-            <span aria-hidden="true">←</span>
-            <span>Back</span>
-          </BackButton>
 
           <div>
             <span className="chat-eyebrow">

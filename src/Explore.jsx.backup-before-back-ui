@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import BackButton from "./BackButton";
 import "./Explore.css";
 
 const API = "http://localhost:3000";
@@ -427,12 +426,6 @@ function Explore() {
   return (
     <div className="explore-page">
       <header className="explore-header">
-        <div className="explore-top-row">
-          <BackButton className="explore-back-button">
-            <span aria-hidden="true">←</span>
-            <span>Back</span>
-          </BackButton>
-        </div>
         <div className="explore-eyebrow">
           <span className="explore-eyebrow-dot" />
           DISCOVER OPPORTUNITIES

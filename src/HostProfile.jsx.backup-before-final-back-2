@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import BackButton from "./BackButton";
 import { Link, useParams } from "react-router-dom";
 import "./HostProfile.css";
 
@@ -142,9 +141,9 @@ function HostProfile() {
             Roamly
           </Link>
 
-          <BackButton className="host-profile-back">
-          <span>Back</span>
-        </BackButton>
+          <Link to="/explore" className="host-profile-back">
+            Explore
+          </Link>
         </header>
 
         <main className="host-profile-container">
@@ -168,9 +167,9 @@ function HostProfile() {
             Roamly
           </Link>
 
-          <BackButton className="host-profile-back">
-          <span>Back</span>
-        </BackButton>
+          <Link to="/explore" className="host-profile-back">
+            Explore
+          </Link>
         </header>
 
         <main className="host-profile-container">
@@ -191,9 +190,9 @@ function HostProfile() {
                 "This host profile could not be found."}
             </p>
 
-            <BackButton className="host-profile-button">
-              <span>Back</span>
-            </BackButton>
+            <Link to="/explore" className="host-profile-button">
+              Back to Explore
+            </Link>
           </section>
         </main>
       </div>
@@ -218,10 +217,10 @@ function HostProfile() {
           Roamly
         </Link>
 
-        <BackButton className="host-profile-back">
-          <span>Back</span>
+        <Link to="/explore" className="host-profile-back">
+          <span>Back to Explore</span>
           <ArrowIcon />
-        </BackButton>
+        </Link>
       </header>
 
       <main className="host-profile-container">

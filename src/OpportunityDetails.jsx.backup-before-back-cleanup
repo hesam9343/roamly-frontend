@@ -2,7 +2,6 @@ import { Link, useParams } from "react-router-dom";
 import BackButton from "./BackButton";
 import { useEffect, useState } from "react";
 import "./OpportunityDetails.css";
-import { useAuth } from "./AuthContext";
 const API = "http://localhost:3000";
 
 function getImageType(category) {
@@ -194,7 +193,6 @@ function OpportunityArt({ type }) {
 
 function OpportunityDetails() {
   const { id } = useParams();
-  const { user } = useAuth();
 
   const [opportunity, setOpportunity] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -390,10 +388,10 @@ async function handleApply() {
               "This opportunity doesn't exist or may have been removed."}
           </p>
 
-          <BackButton className="back-button">
-          <span>Back</span>
-          <ArrowIcon />
-        </BackButton>
+          <Link to="/explore" className="back-button">
+            <span>Back to Explore</span>
+            <ArrowIcon />
+          </Link>
         </div>
       </div>
     );
@@ -406,10 +404,10 @@ async function handleApply() {
           Roamly
         </Link>
 
-        <BackButton className="details-back">
+        <Link to="/explore" className="details-back">
           <span className="details-back-arrow">←</span>
-          Back
-        </BackButton>
+          Explore
+        </Link>
       </nav>
 
       <main className="details-container">
@@ -593,11 +591,6 @@ async function handleApply() {
   type="button"
   className="apply-button"
   onClick={() => {
-    if (!user) {
-      window.location.href = "/roamly-frontend/auth";
-      return;
-    }
-
     setApplyMessage("");
     setShowApply(true);
   }}
